@@ -44,7 +44,6 @@ public class BookSearchIndex {
         }
     }
 
-    @Cacheable(cacheNames = "bookById", key = "#bookId", sync = true)
     public BookResponse findBookById(Long bookId) {
         return client.fetchBookById(bookId);
     }

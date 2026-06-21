@@ -4,6 +4,7 @@ import com.theodore.morotech.booksapi.models.requests.BookReviewRequest;
 import com.theodore.morotech.booksapi.models.responses.BookFullInfoResponse;
 import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
+import com.theodore.morotech.booksapi.models.responses.MonthlyRatingResponse;
 import com.theodore.morotech.booksapi.services.BookService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -52,6 +53,13 @@ public class BooksController {
     @ResponseStatus(HttpStatus.OK)
     public List<BookFullInfoResponse> fetchTopBooksEndpoint(@PathVariable @Min(1) @Max(20) Integer count) {
         return service.fetchTopBooks(count);
+    }
+
+    // optional - Create a service that, given a book id, returns its average rating per month
+    @GetMapping("/ratings/monthly/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<MonthlyRatingResponse> fetchMonthlyRatingsEndpoint(@PathVariable Long id) {
+        return service.fetchMonthlyRatings(id);
     }
 
     // task 2

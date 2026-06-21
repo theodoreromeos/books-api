@@ -4,11 +4,13 @@ import com.theodore.morotech.booksapi.entities.BookReviews;
 import com.theodore.morotech.booksapi.exceptions.BookNotFoundException;
 import com.theodore.morotech.booksapi.mappers.BookReviewMapper;
 import com.theodore.morotech.booksapi.models.requests.BookReviewRequest;
+import com.theodore.morotech.booksapi.models.responses.BookFullInfoResponse;
 import com.theodore.morotech.booksapi.models.responses.BookResponse;
 import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
-import com.theodore.morotech.booksapi.models.responses.BookFullInfoResponse;
+import com.theodore.morotech.booksapi.models.responses.MonthlyRatingResponse;
 import com.theodore.morotech.booksapi.repositories.BookReviewsRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -67,6 +69,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Cacheable(cacheNames = "bookFullInfoById", key = "#bookId", sync = true)
     public BookFullInfoResponse fetchBookFullInfo(Long bookId) {
         var book = index.findBookById(bookId);
         var bookReviews = repository.findByBookId(bookId);
@@ -81,6 +84,14 @@ public class BookServiceImpl implements BookService {
         return repository.findTopBookIdsByAverageRating(PageRequest.of(0, count))
                 .stream()
                 .map(this::fetchBookFullInfo)
+                .toList();
+    }
+
+    @Override
+    public List<MonthlyRatingResponse> fetchMonthlyRatings(Long bookId) {
+        return repository.findMonthlyAverageRatingByBookId(bookId)
+                .stream()
+                .map(r -> new MonthlyRatingResponse(r.getMonth(), r.getAverageRating()))
                 .toList();
     }
 
