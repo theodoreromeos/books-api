@@ -332,3 +332,14 @@ Unit + integration tests (requires Docker for Testcontainers):
 ```bash
 mvn verify -P integration
 ```
+
+# Architecture Choices in order to scale the project
+
+| Component         | Choice                                                   | Reason                                                                                    |
+|-------------------|----------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| **Orchestration** | Kubernetes + HPA                                         | Auto-scales pods based on CPU/RPS                                                         |
+| **API Gateway**   | Ingress + rate limiting                                  | Protects the backend from spamming, ddos etc                                              |
+| **Cache**         | Redis                                                    | Absorbs read-heavy traffic (book listings, ratings)                                       |
+| **DB**            | Postgres now, MondoDB later for scale                    | Postgres now for simplicity, MongoDB later to scale because of high volume and read heavy |
+| **CI/CD**         | GitHub Actions -> registry -> kubernetes rolling updates | Zero-downtime rolling deploys                                                             |
+| **Observability** | Prometheus/Grafana/Loki                                  | Catch regressions before users do                                                         |
