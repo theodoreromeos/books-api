@@ -1,15 +1,20 @@
 package com.theodore.morotech.booksapi.services;
 
+import com.theodore.morotech.booksapi.entities.BookReviews;
 import com.theodore.morotech.booksapi.exceptions.BookNotFoundException;
 import com.theodore.morotech.booksapi.mappers.BookReviewMapper;
 import com.theodore.morotech.booksapi.models.requests.BookReviewRequest;
 import com.theodore.morotech.booksapi.models.responses.BookResponse;
 import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
-import com.theodore.morotech.booksapi.models.responses.FullBookInfoResponse;
+import com.theodore.morotech.booksapi.models.responses.BookFullInfoResponse;
 import com.theodore.morotech.booksapi.repositories.BookReviewsRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -60,8 +65,37 @@ public class BookServiceImpl implements BookService {
         return mapper.entityToResponse(savedBookReview);
     }
 
-    public FullBookInfoResponse getAllBookInfo(Long bookId) {
+    @Override
+    public BookFullInfoResponse fetchBookFullInfo(Long bookId) {
+        var book = index.findBookById(bookId);
+        var bookReviews = repository.findByBookId(bookId);
+        if (CollectionUtils.isEmpty(bookReviews)) {
+            return mapper.toBookFullInfoResponseWithNoReviews(book);
+        }
+        return mapToBookFullInfo(book, bookReviews);
+    }
+
+    @Override
+    public List<BookFullInfoResponse> fetchTopBooks(Integer count) {
         return null;
+    }
+
+    private BookFullInfoResponse mapToBookFullInfo(BookResponse book, List<BookReviews> bookReviews) {
+        int ratingSum = 0;
+        List<String> allReviews = new ArrayList<>();
+        for (BookReviews bookReview : bookReviews) {
+            ratingSum += bookReview.getRating();
+            allReviews.add(bookReview.getReview());
+        }
+        var averageRating = calculateAverageRating(ratingSum, allReviews.size());
+        return mapper.toBookFullInfoResponse(averageRating, allReviews, book);
+    }
+
+    private BigDecimal calculateAverageRating(int sum, int count) {
+        return count == 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(sum)
+                .divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
     }
 
 }

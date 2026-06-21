@@ -1,6 +1,7 @@
 package com.theodore.morotech.booksapi.controllers;
 
 import com.theodore.morotech.booksapi.models.requests.BookReviewRequest;
+import com.theodore.morotech.booksapi.models.responses.BookFullInfoResponse;
 import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
 import com.theodore.morotech.booksapi.services.BookService;
@@ -10,6 +11,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/books")
@@ -21,9 +24,10 @@ public class BooksController {
         this.service = service;
     }
 
+    // task 1
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
-    public BookSearchResponse search(
+    public BookSearchResponse searchBooksEndpoint(
             @RequestParam @NotBlank(message = "Title must not be empty")
             String title,
             @RequestParam (defaultValue = "0")
@@ -36,9 +40,24 @@ public class BooksController {
         return service.searchByTitle(title, page, size);
     }
 
+    // task 3
+    @GetMapping("/review/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public BookFullInfoResponse fetchBookFullInfoEndpoint(@PathVariable Long id) {
+        return service.fetchBookFullInfo(id);
+    }
+
+    // optional - part 2 extension
+    @GetMapping("/top/{count}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<BookFullInfoResponse> fetchTopBooksEndpoint(@PathVariable @Min(1) @Max(20) Integer count) {
+        return service.fetchBookFullInfo(id);
+    }
+
+    // task 2
     @PostMapping("/review")
     @ResponseStatus(HttpStatus.OK)
-    public BookReviewResponse createBookReview(@RequestBody @Valid BookReviewRequest request) {
+    public BookReviewResponse createBookReviewEndpoint(@RequestBody @Valid BookReviewRequest request) {
         return service.createBookReview(request);
     }
 

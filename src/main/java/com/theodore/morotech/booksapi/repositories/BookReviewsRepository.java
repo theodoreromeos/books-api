@@ -9,5 +9,4 @@ public interface BookReviewsRepository extends JpaRepository<BookReviews, Long> 
 
     List<BookReviews> findByBookId(Long bookId);
 
-
 }

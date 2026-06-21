@@ -1,11 +1,15 @@
 package com.theodore.morotech.booksapi.controllers;
 
+import com.theodore.morotech.booksapi.exceptions.BookNotFoundException;
 import com.theodore.morotech.booksapi.models.requests.BookReviewRequest;
 import com.theodore.morotech.booksapi.models.responses.AuthorResponse;
+import com.theodore.morotech.booksapi.models.responses.BookFullInfoResponse;
 import com.theodore.morotech.booksapi.models.responses.BookResponse;
 import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
 import com.theodore.morotech.booksapi.services.BookService;
+
+import java.math.BigDecimal;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,6 +191,39 @@ class BooksControllerTest {
                                     {"book_id": 1, "rating": 0, "review": "test review"}
                                     """))
                     .andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
+    class FetchBookFullInfoTests {
+
+        @Test
+        void fetchBookFullInfo_returnsBookFullInfoResponse() throws Exception {
+            // given
+            var authors = List.of(new AuthorResponse(1819, 1891, "Melville, Herman"));
+            var book = new BookResponse(1L, "Moby Dick", authors, List.of("en"), 120000);
+            var response = new BookFullInfoResponse(book, List.of("A classic"), new BigDecimal("4.50"));
+
+            when(bookService.fetchBookFullInfo(1L)).thenReturn(response);
+
+            // when + then
+            mockMvc.perform(get("/api/books/review/1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(1))
+                    .andExpect(jsonPath("$.title").value("Moby Dick"))
+                    .andExpect(jsonPath("$.reviews[0]").value("A classic"))
+                    .andExpect(jsonPath("$.rating").value(4.5));
+        }
+
+        @Test
+        void fetchBookFullInfo_returnsNotFoundWhenBookDoesNotExist() throws Exception {
+            // given
+            when(bookService.fetchBookFullInfo(9999L)).thenThrow(new BookNotFoundException(9999L));
+
+            // when + then
+            mockMvc.perform(get("/api/books/review/9999"))
+                    .andExpect(status().isNotFound());
         }
 
     }
