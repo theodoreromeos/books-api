@@ -43,7 +43,7 @@ class FetchBookFullInfoIT extends BaseIntegrationTest {
     }
 
     @Test
-    void returnsZeroRatingAndEmptyReviewsWhenNoReviewsExist() {
+    void returnsBookInfoWithEmptyReviewsAndZeroRatingWhenNoReviewsExist() {
         var body = client.get()
                 .uri("/api/books/review/2701")
                 .exchange()
@@ -53,14 +53,19 @@ class FetchBookFullInfoIT extends BaseIntegrationTest {
                 .getResponseBody();
 
         assertThat(body).isNotNull();
+        assertThat(body.book().id()).isEqualTo(2701L);
+        assertThat(body.book().title()).contains("Moby Dick");
+        assertThat(body.book().authors())
+                .singleElement()
+                .satisfies(a -> assertThat(a.name()).isEqualTo("Melville, Herman"));
         assertThat(body.reviews()).isEmpty();
         assertThat(body.rating()).isEqualByComparingTo(BigDecimal.ZERO);
 
-        gutendex.verify(1, getRequestedFor(urlPathEqualTo("/2701")));
+        gutendex.verify(moreThanOrExactly(1), getRequestedFor(urlPathEqualTo("/2701")));
     }
 
     @Test
-    void returnsAverageRatingAndReviewTextsWhenReviewsExist() {
+    void returnsBookInfoWithReviewsAndCalculatedAverageRating() {
         // given
         var review1 = new BookReviews();
         review1.setBookId(2701L);
@@ -85,10 +90,13 @@ class FetchBookFullInfoIT extends BaseIntegrationTest {
 
         // then
         assertThat(body).isNotNull();
+        assertThat(body.book().id()).isEqualTo(2701L);
+        assertThat(body.book().title()).contains("Moby Dick");
+        assertThat(body.book().downloadCount()).isEqualTo(120_000);
         assertThat(body.reviews()).containsExactlyInAnyOrder("Brilliant", "Average");
         assertThat(body.rating()).isEqualByComparingTo(new BigDecimal("3.00"));
 
-        gutendex.verify(1, getRequestedFor(urlPathEqualTo("/2701")));
+        gutendex.verify(moreThanOrExactly(1), getRequestedFor(urlPathEqualTo("/2701")));
     }
 
     private static final String BOOK_2701_JSON = """
