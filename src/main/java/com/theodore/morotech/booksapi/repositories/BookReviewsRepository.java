@@ -1,4 +1,13 @@
 package com.theodore.morotech.booksapi.repositories;
 
-public interface BookReviewsRepository {
+import com.theodore.morotech.booksapi.entities.BookReviews;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface BookReviewsRepository extends JpaRepository<BookReviews, Long> {
+
+    List<BookReviews> findByBookId(Long bookId);
+
+
 }

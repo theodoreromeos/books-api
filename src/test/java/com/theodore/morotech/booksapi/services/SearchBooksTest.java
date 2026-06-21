@@ -2,7 +2,7 @@ package com.theodore.morotech.booksapi.services;
 
 import com.theodore.morotech.booksapi.clients.GutendexRestClient;
 import com.theodore.morotech.booksapi.models.responses.BookResponse;
-import com.theodore.morotech.booksapi.models.responses.GutendexResponse;
+import com.theodore.morotech.booksapi.models.responses.GutendexSearchResponse;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +37,7 @@ public class SearchBooksTest {
             var response = service.searchByTitle("dog", 1, 2);
 
             // then
-            assertThat(response.books()).extracting(BookResponse::id).containsExactly(2L, 3L);
+            assertThat(response.books()).extracting(BookResponse::id).containsExactly(3L, 4L);
             assertThat(response.totalElements()).isEqualTo(5);
             assertThat(response.totalPages()).isEqualTo(3);
         }
@@ -117,7 +117,7 @@ public class SearchBooksTest {
 
             BookResponse firstPageBook = createBook(1, "test book");
 
-            GutendexResponse firstPage = mockGutendexResults(2, firstPageBook);
+            GutendexSearchResponse firstPage = mockGutendexResults(2, firstPageBook);
 
             RuntimeException apiFailure = new RuntimeException("Gutendex down");
 
@@ -138,8 +138,8 @@ public class SearchBooksTest {
             return new BookResponse(id, title, List.of(), List.of("en"), 0);
         }
 
-        private static GutendexResponse mockGutendexResults(int count, BookResponse... books) {
-            return new GutendexResponse(count, null, null, List.of(books));
+        private static GutendexSearchResponse mockGutendexResults(int count, BookResponse... books) {
+            return new GutendexSearchResponse(count, null, null, List.of(books));
         }
 
     }

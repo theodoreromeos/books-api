@@ -1,14 +1,15 @@
 package com.theodore.morotech.booksapi.controllers;
 
+import com.theodore.morotech.booksapi.models.requests.BookReviewRequest;
+import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
 import com.theodore.morotech.booksapi.services.BookService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/books")
@@ -21,6 +22,7 @@ public class BooksController {
     }
 
     @GetMapping("/search")
+    @ResponseStatus(HttpStatus.OK)
     public BookSearchResponse search(
             @RequestParam @NotBlank(message = "Title must not be empty")
             String title,
@@ -32,6 +34,12 @@ public class BooksController {
             @Max(value = 100, message = "Size cannot exceed 100")
             int size) {
         return service.searchByTitle(title, page, size);
+    }
+
+    @PostMapping("/review")
+    @ResponseStatus(HttpStatus.OK)
+    public BookReviewResponse createBookReview(@RequestBody @Valid BookReviewRequest request) {
+        return service.createBookReview(request);
     }
 
 }

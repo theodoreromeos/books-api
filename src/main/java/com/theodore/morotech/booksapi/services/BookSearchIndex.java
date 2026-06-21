@@ -2,7 +2,7 @@ package com.theodore.morotech.booksapi.services;
 
 import com.theodore.morotech.booksapi.clients.GutendexRestClient;
 import com.theodore.morotech.booksapi.models.responses.BookResponse;
-import com.theodore.morotech.booksapi.models.responses.GutendexResponse;
+import com.theodore.morotech.booksapi.models.responses.GutendexSearchResponse;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
@@ -29,11 +29,11 @@ public class BookSearchIndex {
     public List<BookResponse> findAllMatchingBooks(String search) {
         List<String> terms = List.of(search.toLowerCase(Locale.ROOT).split(" "));
 
-        GutendexResponse firstPage = client.fetchPage(search, 1);
+        GutendexSearchResponse firstPage = client.fetchPage(search, 1);
         int totalPages = Math.ceilDiv(firstPage.count(), Math.max(firstPage.results().size(), 1));
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<Future<GutendexResponse>> pages = IntStream.rangeClosed(2, totalPages)// page 1 was fetched already
+            List<Future<GutendexSearchResponse>> pages = IntStream.rangeClosed(2, totalPages)// page 1 was fetched already
                     .mapToObj(page -> executor.submit(() -> client.fetchPage(search, page)))
                     .toList();
 
@@ -44,12 +44,22 @@ public class BookSearchIndex {
         }
     }
 
+    @Cacheable(cacheNames = "bookById", key = "#bookId", sync = true)
+    public BookResponse findBookById(Long bookId) {
+        return client.fetchBookById(bookId);
+    }
+
+    public boolean bookExists(Long bookId) {
+        var book = client.fetchBookById(bookId);
+        return book != null && book.title() != null && !book.title().isEmpty();
+    }
+
     private static boolean matchesAllTerms(BookResponse book, List<String> terms) {
         String title = book.title().toLowerCase(Locale.ROOT);
         return terms.stream().allMatch(title::contains);
     }
 
-    private static GutendexResponse getActualResponse(Future<GutendexResponse> future) {
+    private static GutendexSearchResponse getActualResponse(Future<GutendexSearchResponse> future) {
         try {
             return future.get();
         } catch (ExecutionException e) {

@@ -81,6 +81,14 @@ public class BookRatingExceptionHandler {
         return new ErrorResponse(userMessage, Instant.now());
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(BookNotFoundException.class)
+    public ErrorResponse handleBookNotFound(BookNotFoundException ex) {
+        logger.error("{}", ex.getMessage(), ex);
+        return new ErrorResponse("Book not found", Instant.now());
+    }
+
+
     private String getExceptionMessage(BindingResult bindingResult) {
         return bindingResult
                 .getFieldErrors()

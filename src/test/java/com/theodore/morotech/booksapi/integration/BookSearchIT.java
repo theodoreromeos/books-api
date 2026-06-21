@@ -29,12 +29,12 @@ class BookSearchIT extends BaseIntegrationTest {
     void stubGutendex() {
         gutendex.resetAll();
 
-        gutendex.stubFor(get(urlPathEqualTo("/books/"))
+        gutendex.stubFor(get(urlPathEqualTo("/"))
                 .withQueryParam("search", equalTo("moby"))
                 .withQueryParam("page", equalTo("1"))
                 .willReturn(okJson(PAGE_1_JSON)));
 
-        gutendex.stubFor(get(urlPathEqualTo("/books/"))
+        gutendex.stubFor(get(urlPathEqualTo("/"))
                 .withQueryParam("search", equalTo("moby"))
                 .withQueryParam("page", equalTo("2"))
                 .willReturn(okJson(PAGE_2_JSON)));
@@ -77,7 +77,7 @@ class BookSearchIT extends BaseIntegrationTest {
                     assertThat(a.deathYear()).isEqualTo(1891);
                 });
 
-        gutendex.verify(2, getRequestedFor(urlPathEqualTo("/books/")));
+        gutendex.verify(2, getRequestedFor(urlPathEqualTo("/")));
     }
 
     @Test
@@ -102,7 +102,7 @@ class BookSearchIT extends BaseIntegrationTest {
                 .extracting(BookResponse::id)
                 .containsExactly(2705L);
 
-        gutendex.verify(2, getRequestedFor(urlPathEqualTo("/books/")));
+        gutendex.verify(2, getRequestedFor(urlPathEqualTo("/")));
     }
 
     private static final String PAGE_1_JSON = """

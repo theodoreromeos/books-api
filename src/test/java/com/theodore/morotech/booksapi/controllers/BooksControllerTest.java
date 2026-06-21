@@ -1,13 +1,16 @@
 package com.theodore.morotech.booksapi.controllers;
 
+import com.theodore.morotech.booksapi.models.requests.BookReviewRequest;
 import com.theodore.morotech.booksapi.models.responses.AuthorResponse;
 import com.theodore.morotech.booksapi.models.responses.BookResponse;
+import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
 import com.theodore.morotech.booksapi.services.BookService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,6 +19,7 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -135,6 +139,53 @@ class BooksControllerTest {
             mockMvc.perform(get("/api/books/search")
                             .param("title", "Java")
                             .param("size", "101"))
+                    .andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
+    class CreateBookReviewTests {
+
+        @Test
+        void createBookReview_returnsBookReviewResponse() throws Exception {
+            // given
+            var request = new BookReviewRequest(1L, 5, "Excellent read");
+            var response = new BookReviewResponse(1L, 5, "Excellent read");
+
+            when(bookService.createBookReview(request)).thenReturn(response);
+
+            // when + then
+            mockMvc.perform(post("/api/books/review")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"book_id": 1, "rating": 5, "review": "Excellent read"}
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.book_id").value(1))
+                    .andExpect(jsonPath("$.rating").value(5))
+                    .andExpect(jsonPath("$.review").value("Excellent read"));
+        }
+
+        @Test
+        void createBookReview_returnsBadRequestWhenBookIdIsNull() throws Exception {
+            // when + then
+            mockMvc.perform(post("/api/books/review")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"book_id": null, "rating": 3, "review": "test review"}
+                                    """))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void createBookReview_returnsBadRequestWhenRatingIsOutOfRange() throws Exception {
+            // when + then
+            mockMvc.perform(post("/api/books/review")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"book_id": 1, "rating": 0, "review": "test review"}
+                                    """))
                     .andExpect(status().isBadRequest());
         }
 
