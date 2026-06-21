@@ -51,7 +51,7 @@ public class BooksController {
     @GetMapping("/top/{count}")
     @ResponseStatus(HttpStatus.OK)
     public List<BookFullInfoResponse> fetchTopBooksEndpoint(@PathVariable @Min(1) @Max(20) Integer count) {
-        return service.fetchBookFullInfo(id);
+        return service.fetchTopBooks(count);
     }
 
     // task 2

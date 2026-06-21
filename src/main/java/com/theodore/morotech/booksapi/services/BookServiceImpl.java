@@ -9,6 +9,7 @@ import com.theodore.morotech.booksapi.models.responses.BookReviewResponse;
 import com.theodore.morotech.booksapi.models.responses.BookSearchResponse;
 import com.theodore.morotech.booksapi.models.responses.BookFullInfoResponse;
 import com.theodore.morotech.booksapi.repositories.BookReviewsRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -77,7 +78,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<BookFullInfoResponse> fetchTopBooks(Integer count) {
-        return null;
+        return repository.findTopBookIdsByAverageRating(PageRequest.of(0, count))
+                .stream()
+                .map(this::fetchBookFullInfo)
+                .toList();
     }
 
     private BookFullInfoResponse mapToBookFullInfo(BookResponse book, List<BookReviews> bookReviews) {
