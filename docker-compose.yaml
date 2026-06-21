@@ -1,0 +1,74 @@
+name: books-api
+
+services:
+
+  # # # # # # # # # # # # #
+  books-db:
+    image: postgres:latest
+    container_name: books-db
+    ports: [ "2345:5432" ]
+    environment:
+      POSTGRES_USER: morotech
+      POSTGRES_PASSWORD: m0r0tecH!!
+      POSTGRES_DB: books-db
+    volumes:
+      - books_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U morotech -d books-db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [ books-net ]
+
+  # # # # # # # # # # # # #
+  redis:
+    image: redis:7-alpine
+    container_name: redis-cache
+    ports: [ "6379:6379" ]
+    volumes:
+      - ../books-api/cache/users.acl:/usr/local/etc/redis/users.acl:ro
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --aclfile /usr/local/etc/redis/users.acl
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks: [ books-net ]
+
+  # # # # # # # # # # # # #
+  books-api:
+    build:
+      context: ..
+      dockerfile: books-api/Dockerfile
+    image: books-api:local
+    container_name: books-api-service
+    depends_on:
+      books-db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      DATABASE_HOST: books-db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: books-db
+      DATABASE_USERNAME: morotech
+      DATABASE_PASSWORD: m0r0tecH!!
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_USERNAME: morotech
+      REDIS_PASSWORD: red!!sbo0kSS
+    ports: [ "8081:8081" ]
+    restart: unless-stopped
+    networks: [ books-net ]
+
+volumes:
+  books_postgres_data:
+
+networks:
+  books-net:
+    driver: bridge
